@@ -1,0 +1,25 @@
+{
+  "name": "soucouyant",
+  "version": "0.0.1",
+  "description": "Relational State Management",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --recursive ./test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julienetie/soucouyant.git"
+  },
+  "author": "Julien Etienne",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/julienetie/soucouyant/issues"
+  },
+  "homepage": "https://github.com/julienetie/soucouyant#readme",
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "fake-indexeddb": "^4.0.0",
+    "mocha": "^10.0.0"
+  }
+}
