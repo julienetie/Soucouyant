@@ -1,4 +1,4 @@
-# Soucouyant
+# Soucouyant - Work In Progress
 ![Soucouyant Logo](https://github.com/julienetie/soucouyant/blob/main/soucouyant-logo.webp?raw=true)
 
 ## Relational State Management
