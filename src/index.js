@@ -213,10 +213,10 @@ const createAddress = (addressParts, count, state, length, isCollection, nextPar
         // And assigns the nextPart as that property to 
         // recycle into it's self to add additional levels.
         // Once!
-        if (o[newPart] === undefined) {
-            nextPart = o[newPart] = {};
+        if (objectAccessor[newPart] === undefined) {
+            nextPart = objectAccessor[newPart] = {};
         } else {
-            nextPart = o[newPart];
+            nextPart = objectAccessor[newPart];
         }
     } else {
         // Creates the next property as an object.
@@ -234,15 +234,7 @@ const createAddress = (addressParts, count, state, length, isCollection, nextPar
         } else {
             nextPart = nextPart[newPart];
             if (isEndOfPath) {
-                // @testing
-                if(isTesting) {
-                    return {
-                        newPart,
-                        nextPart,
-                        identity,
-                        count
-                    }
-                }
+
                 return
             }
         }
@@ -252,15 +244,15 @@ const createAddress = (addressParts, count, state, length, isCollection, nextPar
 }
 
 /** 
- * State object is a side effect represented by the "o" letter.
+ * State object is a side effect represented by the "objectAccessor" letter.
  * It takes a namespace address separeated by forward arrows and 
  * an inital state.
  *
  * @param {string} address - The namespace address of the state object.
  * @param {*} state - The value of the state.
- * @returns {Function} o.
+ * @returns {Function} objectAccessor.
  */
-const o = (address) => {
+const objectAccessor = (address) => {
     const addressParts = address[0].split('>');
     const addressPartsLength = addressParts.length;
 
@@ -273,7 +265,7 @@ const o = (address) => {
             false,
             null
         )
-        return o
+        return objectAccessor
     }
 }
 
@@ -285,6 +277,7 @@ const __internal = isTesting ? {
 
 if (isTesting) console.info('[[[[[[ NODE_ENV TESTING ]]]]]]')
 
+const o = objectAccessor
 export {
     o,
     pending,

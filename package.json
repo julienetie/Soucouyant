@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "NODE_ENV=test ./node_modules/.bin/mocha --recursive ./test",
-    "d": "node ./test/sandbox1.js"
+    "d": "node ./test/sandbox1.js",
+    "lint": "./node_modules/.bin/eslint --fix ./src"
   },
   "engines": {
     "node": ">=20.11.0"
@@ -23,6 +24,11 @@
   "homepage": "https://github.com/julienetie/soucouyant#readme",
   "devDependencies": {
     "chai": "^5.0.3",
+    "eslint": "^8.56.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.1.1",
     "mocha": "^10.2.0"
   }
 }
