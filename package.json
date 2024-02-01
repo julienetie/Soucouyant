@@ -8,6 +8,9 @@
     "test": "NODE_ENV=test ./node_modules/.bin/mocha --recursive ./test",
     "d": "node ./test/sandbox1.js"
   },
+  "engines": {
+    "node": ">=20.11.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/julienetie/soucouyant.git"

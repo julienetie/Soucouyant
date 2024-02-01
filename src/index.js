@@ -1,3 +1,5 @@
+const isTesting = globalThis.process.env.NODE_ENV === 'test'
+
 const pending = Symbol('Pending')
 
 
@@ -130,31 +132,7 @@ const getCurrentState = (identity) => {
     }
 }
 
-/** 
- * State object is a side effect represented by the "o" letter.
- * It takes a namespace address separeated by forward arrows and 
- * an inital state.
- *
- * @param {string} address - The namespace address of the state object.
- * @param {*} state - The value of the state.
- * @returns {Function} o.
- */
-const o = (address) => {
-    const addressParts = address[0].split('>');
-    const addressPartsLength = addressParts.length;
 
-    return (state = pending) => {
-        createAddress(
-            addressParts,
-            0,
-            state,
-            addressPartsLength,
-            false,
-            null
-        )
-        return o
-    }
-}
 
 
 /** 
@@ -256,7 +234,16 @@ const createAddress = (addressParts, count, state, length, isCollection, nextPar
         } else {
             nextPart = nextPart[newPart];
             if (isEndOfPath) {
-                return;
+                // @testing
+                if(isTesting) {
+                    return {
+                        newPart,
+                        nextPart,
+                        identity,
+                        count
+                    }
+                }
+                return
             }
         }
     }
@@ -264,15 +251,39 @@ const createAddress = (addressParts, count, state, length, isCollection, nextPar
     createAddress(addressParts, count, state, length, isCollection, nextPart);
 }
 
-const isTesting = process.env.NODE_ENV === 'test'
+/** 
+ * State object is a side effect represented by the "o" letter.
+ * It takes a namespace address separeated by forward arrows and 
+ * an inital state.
+ *
+ * @param {string} address - The namespace address of the state object.
+ * @param {*} state - The value of the state.
+ * @returns {Function} o.
+ */
+const o = (address) => {
+    const addressParts = address[0].split('>');
+    const addressPartsLength = addressParts.length;
+
+    return (state = pending) => {
+        createAddress(
+            addressParts,
+            0,
+            state,
+            addressPartsLength,
+            false,
+            null
+        )
+        return o
+    }
+}
+
+
 // Internal test imports
 const __internal = isTesting ? {
     createAddress
 } : undefined
 
-if (isTesting) {
-    console.info('[[[[[[ NODE_ENV TESTING ]]]]]]')
-}
+if (isTesting) console.info('[[[[[[ NODE_ENV TESTING ]]]]]]')
 
 export {
     o,
