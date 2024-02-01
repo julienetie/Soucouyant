@@ -3,8 +3,8 @@ const pending = Symbol('Pending')
 
 
 const cache = {
-	subscriptions: {},
-	suspend: {},
+    subscriptions: {},
+    suspend: {},
 }
 
 
@@ -24,28 +24,28 @@ const persistence = {
 };
 
 const cloneObject = (value, allowSingleFunction) => {
-    if(typeof value === 'function'){
-        if(!allowSingleFunction){
+    if (typeof value === 'function') {
+        if (!allowSingleFunction) {
             throw Error('Cannot copy \'[object Function]\' as \'allowSingleFunction\' is not enabled.');
         }
         return new Function('return ' + value.toString())();
     }
-    if(value === undefined){
-        return value; 
-    }
-    if(Object.is(value,NaN)){
+    if (value === undefined) {
         return value;
     }
-    if(typeof value !== 'object'){
+    if (Object.is(value, NaN)) {
         return value;
     }
-    const toParse = Array.isArray(value) ? value 
-    : Object.keys(value).sort().reduce((acc, key) => {
-        acc[key] = value[key];
-        return acc;
-    }, {});
-    
-    return JSON.parse(JSON.stringify(toParse)); 
+    if (typeof value !== 'object') {
+        return value;
+    }
+    const toParse = Array.isArray(value) ? value
+        : Object.keys(value).sort().reduce((acc, key) => {
+            acc[key] = value[key];
+            return acc;
+        }, {});
+
+    return JSON.parse(JSON.stringify(toParse));
 }
 
 // Update settings.
@@ -68,7 +68,7 @@ const addNewState = (state, identity) => {
     for (let i = 0; i < uniqueStateReferencesLength; i++) {
         const uniqueState = uniqueStateReferences[i];
         const hasExistingState = JSON
-            .stringify(uniqueState) === stateAsString; 
+            .stringify(uniqueState) === stateAsString;
         if (hasExistingState) {
             directReference = uniqueState;
             stateExist = true;
@@ -110,7 +110,7 @@ const addNewState = (state, identity) => {
     const subIdentity = subscriptions[identity];
     const subIdentityLength = Object.keys(subIdentity).length;
 
-    for(let ref in subIdentity){
+    for (let ref in subIdentity) {
         subIdentity[ref](directReference, identity, currentTimeStamp);
     }
 
@@ -264,25 +264,18 @@ const createAddress = (addressParts, count, state, length, isCollection, nextPar
     createAddress(addressParts, count, state, length, isCollection, nextPart);
 }
 
-// // Object Accessor
-// const o = (a, b, c, d, e, f) => {
-//     console.log(a)
-//     console.log(b)
-//     console.log(c)
-//     console.log(d)
-//     console.log(e)
-//     return (state = pending) => {
-//         console.log('state', state.toString())
-//         if (state.toString && state.toString() === pending.toString()) {
-//             console.log('isPending', true)
-//         }
-//         return o
-//     }
-// }
+const isTesting = process.env.NODE_ENV === 'test'
+// Internal test imports
+const __internal = isTesting ? {
+    createAddress
+} : undefined
 
-
+if (isTesting) {
+    console.info('[[[[[[ NODE_ENV TESTING ]]]]]]')
+}
 
 export {
     o,
-    pending
+    pending,
+    __internal
 }

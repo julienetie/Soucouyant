@@ -1,9 +1,13 @@
 import { expect } from 'chai'
-// import o from '../../src/object-accessor/index.js'
+import { o, __internal } from '../../src/index.js'
 
-describe('objectAccessor', ()=> {
-  
+const { createAddress } = __internal
 
+describe('createAddress', () => {
+    it('Test test case', () => {
+        console.log('createAddress', createAddress)
+        expect(createAddress).to.be.a('function')
+    })
 })
 
 // describe('objectAccessor', ()=> {
