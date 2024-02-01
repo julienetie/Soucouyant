@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --recursive ./test"
+    "test": "./node_modules/.bin/mocha --recursive ./test",
+    "d": "node ./test/sandbox1.js"
   },
   "repository": {
     "type": "git",
