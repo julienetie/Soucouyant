@@ -1,41 +1,73 @@
 import { expect } from 'chai'
-import { o, __internal } from '../src/index.js'
+import { o, __internal, pending } from '../src/index.js'
 
 const { createAddress } = __internal
 
-// describe('createAddress', () => {
-//     it('Test test case', () => {
-//         console.log('createAddress', createAddress)
-//         expect(createAddress).to.be.a('function')
-//     })
-// })
+describe('objectAccessor', () => {
+    // Import
+    it('o - Should be a function', () => {
+        expect(o).to.be.a('function')
+    })
 
-describe('objectAccessor', ()=> {
-  it('o - Should be a function', ()=> {
-    expect(o).to.be.a('function')
-  })
-  it('o`cat1 > stateObject` - should return a function', ()=> {
-    expect(o`cat1 > stateObject`).to.be.a('function')
-  })
+    // Object Accessor
+    it('o.stateObject()` - should return o', () => {
+        // This shoudl also sets the inital state as pending
+        const objectAccessor = o`stateObject`()
+        expect(objectAccessor)
+            .to.equal(o)
+    })
 
-  it('o`cat1 > stateObject()` - should return o', ()=> {
-    expect(o`cat1 > stateObject`()).to.equal(o)
-  })
-  it('o.cat1.stateObject` - should be a function', ()=> {
-    expect(o.cat1.stateObject).to.be.a('function')
-  })
-  it('o.cat1.stateObject(\'Hello World\')` - should be a state in a frame in the store', ()=> {
-    const greeting = 'Hello World!'
-    o`cat2 > greeting`(greeting)
-    const state = o.cat2.greeting(t => t)
-    console.log('state', state)
-    // expect(state).to.equal(greeting)
-    // chain.expose()
-  })
+    it('o.stateObject` - should be a function', () => {
+        const stateObject = o.stateObject
+        expect(stateObject)
+            .to.be.a('function')
+    })
+
+    it('o.stateObject()` - should get the last state `pending`', () => {
+        // Sets inital state as pending
+        const state = o.stateObject()
+        expect(state.toString())
+            .to.equal(pending.toString())
+    })
+
+    it('o.stateObject(undefined)` - should get the last state', () => {
+        const state = o.stateObject(undefined)
+        expect(state.toString())
+            .to.equal(pending.toString())
+    })
+
+    it('o.stateObject(undefined)` - should set and return "red"', () => {
+        const state = o.stateObject('red')
+        expect(state)
+            .to.equal('red')
+    })
+
+    it('o.stateObject()` - should get "red"', () => {
+        const state = o.stateObject()
+        expect(state)
+            .to.equal('red')
+    })
+
+    // Categories
+    it('o`cat1 > stateObject` - should return a function', () => {
+        expect(o`cat1 > stateObject`).to.be.a('function')
+    })
+
+    it('o`cat1 > stateObject()` - should return o', () => {
+        expect(o`cat1 > stateObject`()).to.equal(o)
+    })
+
+    it('o.cat1.stateObject` - should be a function', () => {
+        expect(o.cat1.stateObject).to.be.a('function')
+    })
+
+    it('o.cat1.stateObject` - should set and return `12345n`', () => {
+        const state = o.cat1.stateObject(12345n)
+        expect(state).to.be.a(12345n)
+    })
+
+    it('o.cat1.stateObject` - should get `12345n`', () => {
+        const state = o.cat1.stateObject()
+        expect(state).to.be.a(12345n)
+    })
 })
-
-// describe('objectAccessor', ()=> {
-//   it('Declare Should be a function', ()=> {
-//     expect(o).to.be.a('function')
-//   })
-// })

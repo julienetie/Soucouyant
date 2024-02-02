@@ -57,12 +57,14 @@ const persistenceSettings = options => Object.assign(persistence.options, option
 // Adds a new state to the accumilator 
 // May create a new frame to do so.
 const addNewState = (state, identity) => {
+    console.log('addNewState', state)
     const currentTimeStamp = Date.now();
     const mergeFidelity = persistence.options.mergeFidelity;
     // Check unique states and add the state if does not yet exist.
     // Directly reference the existing state.
     const clonedState = cloneObject(state);
     const stateAsString = JSON.stringify(clonedState);
+    console.log('stateAsString', stateAsString)
     const uniqueStateReferencesLength = uniqueStateReferences.length;
 
     let stateExist = false;
@@ -139,19 +141,34 @@ const getCurrentState = (identity) => {
  * @param {*} state
  * @param {number} identity - the unique state subscription identifier
  */
-const stateMachine = (state, identity) => {
+const stateMachine = (state, identity) => { console.log('stateMachine:', state)
     const stateModifier = callback => {
         const lastState = state === null ? getCurrentState(identity) : state;
-        const newState = callback(lastState);
+        console.log('state', state, callback, callback)
+        switch (typeof callback) {
+            case 'function':
+                console.log('bi-fn')
+                const newState = callback(lastState);
 
-        // We only update state if return is undefined.
-        if (newState !== undefined) {
-            addNewState(newState, identity);
-            if (state !== null) {
-                state = null;
-            }
+                // We only update state if return is undefined.
+                if (newState !== undefined) {
+                    addNewState(newState, identity)
+                    if (state !== null) {
+                        state = null
+                    }
+                }
+                return newState
+            case 'undefined':
+                console.log('bi-u')
+                return lastState
+            default:
+                console.log('bi-def')
+                addNewState(callback, identity)
+                if (state !== null) {
+                    state = null
+                }
+                return callback
         }
-        return newState;
     }
     /** 
      * subscribe method.
@@ -208,6 +225,13 @@ let identity = -1;
  */
 const createAddress = (addressParts, count, state, length, isCollection, nextPart) => {
     const newPart = (addressParts[count] + '').trim();
+    console.log('newPart', addressParts, count, state, length, isCollection, nextPart)
+
+    if (length === 1) {
+        objectAccessor[newPart] = stateMachine(state, identity)
+        return
+    }
+
     if (nextPart === null) {
         // Creates the next property as an object.
         // And assigns the nextPart as that property to 
@@ -216,7 +240,7 @@ const createAddress = (addressParts, count, state, length, isCollection, nextPar
         if (objectAccessor[newPart] === undefined) {
             nextPart = objectAccessor[newPart] = {};
         } else {
-            nextPart = objectAccessor[newPart];
+            nextPart = objectAccessor[newPart]
         }
     } else {
         // Creates the next property as an object.

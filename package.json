@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "NODE_ENV=test ./node_modules/.bin/mocha --recursive ./test",
+    "test": "NODE_ENV=test ./node_modules/.bin/mocha --inspect --no-warnings --recursive ./test",
     "d": "node ./test/sandbox1.js",
     "lint": "./node_modules/.bin/eslint --fix ./src"
   },
