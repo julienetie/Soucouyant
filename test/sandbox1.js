@@ -12,7 +12,7 @@ console.log('result1:', result1)
 console.log('result2:', result2)                                                              
 
 // No Category
-o`color`()
+o`color`('yellow')
 
 // console.log('o.color', o.color)
 // console.log('o.color', o.color(s => s))
@@ -20,9 +20,10 @@ console.log('o.color', o.color())
 // console.log('o.color', o.color('yellow'))
 // console.log('o.color', o.color(pending))
 
-
+console.info('create stateObject')
 o`accounts > numbers > bigInt`(123n)
+console.info('end of create stateObject')
 
 const bigInt = o.accounts.numbers.bigInt() 
 
-console.log('bigInt', typeof bigInt)
+console.log('globalThis.uniqueStateReferences', globalThis.uniqueStateReferences)

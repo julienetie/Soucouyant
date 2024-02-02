@@ -1,3 +1,71 @@
+/*
+
+addNewState
+
+
+- uniqueStoreManager()
+  - uniqueStore: Array
+  - uniqueRegister: Array
+
+  .addItem(state or index)
+    - Looks for index of existing match in uniqueStore / Uses provided index
+    - IF Match 
+      - Get Index, increment value by 1 at index on uniqueRegister
+      - Return index
+    - ELSE
+      - Add 1 to end of uniqueRegisger
+      - Add state to end of uniqueStore
+      - Return index 
+  
+  .removeItem(state or index)
+    - Looks for index of existing match in uniqueStore / Use provided index
+    - IF Match
+      - Subtract 1 from number in index for uniqueRegister
+      - If value === 0, replace the value with null
+    - Else
+      - Do nothing, return null
+
+      Settings:
+      - storeUnique: true | false            Uses an alternative store called: nonUniqueStoreManager
+      - arrayType: 'sparse' | 'dynamic'
+      - initialLength: 10_000 | null
+   .  - increment: 10_000 | null
+
+
+primaryChain: The main timeline
+
+
+
+      Settings:
+      - persist: true | false 
+      - arrayType: 'sparse' | 'dynamic'
+      - initialLength: 10_000 | null
+   .  - increment: 10_000 | null
+      - mergeFidelity: 200 | null
+
+        chain.purge()
+        chain.trailLimit()
+        chain.autoLimitTail()
+        chain.tailSliceSize()
+        chain.requestTailSlice()
+        chain.expose()
+        chain.validate()
+        chain.find()
+        chian.buffer()
+
+      head:
+      .meta()
+      .seek()
+      .ignoreFrame()
+
+      
+
+
+
+
+
+ */
+
 const isTesting = globalThis.process.env.NODE_ENV === 'test'
 
 const pending = Symbol('Pending')
@@ -14,10 +82,10 @@ const cache = {
  Accumilates frames.
 
 **/
-const accumilator = [
+const primaryChain = [
     []
 ];
-const uniqueStateReferences = [];
+const uniqueStore = [];
 
 const persistence = {
     options: {
@@ -54,23 +122,21 @@ const cloneObject = (value, allowSingleFunction) => {
 const persistenceSettings = options => Object.assign(persistence.options, options);
 
 
-// Adds a new state to the accumilator 
+// Adds a new state to the primaryChain 
 // May create a new frame to do so.
 const addNewState = (state, identity) => {
-    console.log('addNewState', state)
     const currentTimeStamp = Date.now();
     const mergeFidelity = persistence.options.mergeFidelity;
     // Check unique states and add the state if does not yet exist.
     // Directly reference the existing state.
     const clonedState = cloneObject(state);
     const stateAsString = JSON.stringify(clonedState);
-    console.log('stateAsString', stateAsString)
-    const uniqueStateReferencesLength = uniqueStateReferences.length;
+    const uniqueStateReferencesLength = uniqueStore.length;
 
     let stateExist = false;
     let directReference;
     for (let i = 0; i < uniqueStateReferencesLength; i++) {
-        const uniqueState = uniqueStateReferences[i];
+        const uniqueState = uniqueStore[i];
         const hasExistingState = JSON
             .stringify(uniqueState) === stateAsString;
         if (hasExistingState) {
@@ -81,13 +147,13 @@ const addNewState = (state, identity) => {
     }
 
     if (stateExist === false) {
-        uniqueStateReferences.push(clonedState);
+        uniqueStore.push(clonedState);
         directReference = clonedState;
     }
 
     // Find frame by timestamp
-    const accumilatorLength = accumilator.length;
-    const lastFrame = accumilator[accumilatorLength - 1];
+    const accumilatorLength = primaryChain.length;
+    const lastFrame = primaryChain[accumilatorLength - 1];
     const lastFrameTimeStamp = lastFrame[0];
 
     // If within proximity merge. 
@@ -97,7 +163,7 @@ const addNewState = (state, identity) => {
         lastFrame.push([identity, directReference]);
     } else {
         // Add new frame.
-        accumilator.push([
+        primaryChain.push([
             currentTimeStamp, [
                 identity,
                 directReference
@@ -118,13 +184,13 @@ const addNewState = (state, identity) => {
         subIdentity[ref](directReference, identity, currentTimeStamp);
     }
 
-    // console.log('accumilator', JSON.stringify(accumilator, null, '\t'));
+    // console.log('primaryChain', JSON.stringify(primaryChain, null, '\t'));
 }
 
 const getCurrentState = (identity) => {
-    const accumilatorLength = accumilator.length;
+    const accumilatorLength = primaryChain.length;
     for (let i = accumilatorLength; i > -1; --i) {
-        const frame = accumilator[i] || [];
+        const frame = primaryChain[i] || [];
         const frameLength = frame.length;
         for (let j = 0; j < frameLength; j++) {
             if (frame[j][0] === identity) {
@@ -141,13 +207,12 @@ const getCurrentState = (identity) => {
  * @param {*} state
  * @param {number} identity - the unique state subscription identifier
  */
-const stateMachine = (state, identity) => { console.log('stateMachine:', state)
+const stateMachine = (state, identity) => {
     const stateModifier = callback => {
         const lastState = state === null ? getCurrentState(identity) : state;
-        console.log('state', state, callback, callback)
+
         switch (typeof callback) {
             case 'function':
-                console.log('bi-fn')
                 const newState = callback(lastState);
 
                 // We only update state if return is undefined.
@@ -159,10 +224,8 @@ const stateMachine = (state, identity) => { console.log('stateMachine:', state)
                 }
                 return newState
             case 'undefined':
-                console.log('bi-u')
                 return lastState
             default:
-                console.log('bi-def')
                 addNewState(callback, identity)
                 if (state !== null) {
                     state = null
