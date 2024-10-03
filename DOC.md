@@ -24,10 +24,14 @@ Allowed Types
 | Set                 | x          | x            |        |
 | Error Types         | x          | x            |        |
 | BigInt              | x          | x            |        |
+| pending             | x          | x            | x      |
+| republish           | x          | x            | x      |
 
 Disallowed Types
 | Types               | 
 |---------------------|
+| Undefined           |
+| NaN                 |
 | Classes             |
 | Promise             |
 | Functions           |
@@ -40,6 +44,7 @@ Disallowed Types
 | ImageData           | 
 | SharedArrayBuffer   |
 
+
 The config of each timeline defines the **timelineType** which can be changed in real-time. 
 It's possble to develop with Structured Timeline Type and change over to Unstructured for production
 using the `.setTimelineType('unstructured')`.
@@ -48,3 +53,8 @@ There is no hard rule about what type to prefer. "Structured" is the default whi
 data usutiable for structured-cloned based APIs like postMessage and IndexedDB, as well as not containing references to external objects. "Unstructured" stores object without the structured-clone algorithm in some cases it may be faster 
 but it may also be more privy to external references. "Pruned" is a restricted data type spcifically where performance is a concern.  
 
+
+## Typed state
+- You can enforce the type of state a stateObject accepts for Structured and Unstructured state. 
+- In debug mode, you can enabled typed-object-state for plain objects
+ 
