@@ -52,9 +52,4 @@ using the `.setTimelineType('unstructured')`.
 There is no hard rule about what type to prefer. "Structured" is the default which will guard against
 data usutiable for structured-cloned based APIs like postMessage and IndexedDB, as well as not containing references to external objects. "Unstructured" stores object without the structured-clone algorithm in some cases it may be faster 
 but it may also be more privy to external references. "Pruned" is a restricted data type spcifically where performance is a concern.  
-
-
-## Typed state
-- You can enforce the type of state a stateObject accepts for Structured and Unstructured state. 
-- In debug mode, you can enabled typed-object-state for plain objects
  
