@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "esnext", // Specify ECMAScript target version (ES5, ES6, ESNext)
+        "module": "ESNext", // Specify module code generation
+        "checkJs": true, // Enable type checking in JavaScript files
+        "baseUrl": "./src", // Base directory to resolve non-relative module names
+        "paths": {
+            "*": [
+                "node_modules/*"
+            ] // Path mappings
+        }
+    },
+    "include": [
+        "src/**/*"
+    ], // Specify the files or folders to include
+    "exclude": [
+        "node_modules",
+        "**/*.spec.js"
+    ] // Specify files or folders to exclude
+}

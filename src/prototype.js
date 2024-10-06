@@ -77,6 +77,7 @@ const config = (configuration = {}) => {
     store.config.uniqueStoreArrayType = Object.hasOwn(configuration, 'uniqueStoreArrayType') ? configuration.uniqueStoreArrayType : defaults.uniqueStoreArrayType
     store.config.uniqueStoreInitialLength = Object.hasOwn(configuration, 'uniqueStoreInitialLength') ? configuration.uniqueStoreInitialLength : defaults.uniqueStoreInitialLength
     store.config.uniqueStoreIncrementBy = Object.hasOwn(configuration, 'uniqueStoreIncrementBy') ? configuration.uniqueStoreIncrementBy : defaults.uniqueStoreIncrementBy
+    store.config.uniqueStoreBitSize
 }
 
 const o = () => {
