@@ -1,29 +1,13 @@
 const empty = ''
 
 const chainConfig = {
-    mergeFidelity: 0
+    mergeFidelity: 0,
+    safeIntegers: false,  // todo
 }
 
 const pending = Symbol('pending')
 const republish = Symbol('republish')
 
-/*
-- Structured State: Objects are parsed though the structuredClone algorithm
-- Unstructued State: Objects are stored directly without being cloned
-- Pruned State: string, number, null, symbol, boolean, JSON objects, JSON array, Date (string)
- */
-
-// State is structured by default
-
-/*
-There is no branching of chains there is no child or parents
-You can create multiple chains in a project and merge either into eachother.
-
-You will get errors if you extend a chain to the wrong type of stateObject.
-- Unstructured State: Can be extended with Unstructured, Structured or Pruned stateObjects
-- Structured State: Can be extended with Structured or Pruned stateObjects.
-- Pruned State: Can be extended with only other Pruned stateObjects.
- */
 
 // Options start
 const precision = 'moderate' // 'moderate' | 'high'
@@ -33,11 +17,11 @@ const precision = 'moderate' // 'moderate' | 'high'
 
 const { isArray } = Array
 
-const accumulator = [{}]
+const accumulator = []
 
 const uniqueStateMap = new Map([
-    ['null', [null]],
-    ['boolean', [true, false]],
+    ['null', null],
+    ['boolean', null],
     ['number', []],
     ['string', []],
     ['plain-object', {
@@ -51,12 +35,14 @@ const uniqueStateMap = new Map([
     ['date', []],
     ['reguar-expression', []],
     ['map', []],
-    ['set', []],            // Size capped to 256
+    ['set', []],            // Size warning to 256
     ['errors', []],
     ['bigint', []],
-    ['pending', [pending]],
-    ['republish', []],
+    ['pending', [pending]]
 ])
+
+const evictionStateMap = new Map()
+const overwriteSerializedIdentities = new Set()
 
 
 const getTimestamp = precision === 'moderate' ? Date.now : performance.now
@@ -115,21 +101,21 @@ const areSetsSimilar = (setA, setB) => {
 
 let plainObjectDedupType = empty
 let arrayDedupType = empty
-const addStateAndGetLocation = (state, options = {}) => {
-    const serializePlainObject = options.serializePlainObject
-    const serializeArray = options.serializeArray
+const persistStateAndGetLocation = (state, options = {}) => {
     const stateType = typeof state
+    const isEvict = options.mode === 'overwrite'
 
     let stateIndex
     let typeRegistryIndex
     let typeRegistry
     let typeRegistryName
+    let isStateSerialized
     switch (stateType) {
         // Snapshot
         case 'boolean':
+            // Booleans are stored int he stateIndex not the uniqueStateMap
             typeRegistryName = stateType
-            typeRegistry = uniqueStateMap.get(typeRegistryName)
-            stateIndex = state ? 0 : 1
+            stateIndex = +state
             break
         case 'number':
         case 'string':
@@ -204,14 +190,14 @@ const addStateAndGetLocation = (state, options = {}) => {
             if (isPlainObjectPartialCheck(state)) {
                 typeRegistryName = 'plain-object'
                 typeRegistry = uniqueStateMap.get(typeRegistryName)
-                console.log('serializePlainObject', serializePlainObject)
-                if (serializePlainObject) {
+
+                if (options.serialize) {
                     if (plainObjectDedupType === 'cloned') {
                         console.error(`stateType ${stateType} supports cloned objects only and cannot support serialized objects within this chain.`)
                         return [null, null]
                     }
                     plainObjectDedupType = 'serialized'
-                    typeRegistryName += ':serialized'
+                    isStateSerialized = true
                     const stateSerialized = JSON.stringify(state)
                     typeRegistryIndex = typeRegistry.serialized.indexOf(stateSerialized)
 
@@ -247,13 +233,13 @@ const addStateAndGetLocation = (state, options = {}) => {
                 typeRegistryName = 'array'
                 typeRegistry = uniqueStateMap.get(typeRegistryName)
 
-                if (serializeArray) {
+                if (options.serialize) {
                     if (arrayDedupType === 'cloned') {
                         console.error(`stateType ${stateType} supports cloned arrays only and cannot support serialized arrays within this chain.`)
                         return [null, null]
                     }
                     arrayDedupType = 'serialized'
-                    typeRegistryName += ':serialized'
+                    isStateSerialized = true
                     const stateSerialized = JSON.stringify(state)
                     typeRegistryIndex = typeRegistry.serialized.indexOf(stateSerialized)
                     if (typeRegistryIndex > -1) {
@@ -338,51 +324,242 @@ const addStateAndGetLocation = (state, options = {}) => {
             }
     }
 
-    return [typeRegistryName, stateIndex]
+
+    return [typeRegistryName, stateIndex, isStateSerialized]
+
+}
+
+const getPersistentState = (identity) => {
+    const frame = accumulator.findLast(frame => frame[identity])
+
+    if (frame) {
+
+        const { typeRegistryName, stateIndex, isStateSerialized } = frame[identity]
+        // Boolean 
+        if (typeRegistryName === 'boolean') return !!stateIndex
+
+        const registry = uniqueStateMap.get(typeRegistryName)
+        switch (typeRegistryName) {
+            // String | Number | BigInt
+            case 'string':
+            case 'number':
+            case 'bigint':
+            case 'date':
+            case 'error':
+            case 'regular-expression':
+                return registry[stateIndex]
+            case 'null':
+                return null
+            case 'plain-object':
+                if (isStateSerialized) {
+                    return JSON.parse(registry.serialized[stateIndex])
+                }
+                return registry.cloned[stateIndex]
+            case 'array':
+                if (isStateSerialized) {
+                    return JSON.parse(registry.serialized[stateIndex])
+                }
+                return registry.cloned[stateIndex]
+            case 'map':
+                return registry[stateIndex]
+            case 'set':
+                return registry[stateIndex]
+            case 'pending':
+                return pending
+        }
+    }
 }
 
 
-const addState = (identity, options, state) => {
+const readEvictionState = (identity) => {
+    const isSerialized = overwriteSerializedIdentities.has(identity)
+    const rawState = evictionStateMap.get(identity)
+    return isSerialized ? JSON.parse(rawState) : rawState
+}
+
+
+const overwriteEvictionState = (identity, state, options = {}) => {
+    const stateType = typeof state
+    switch (stateType) {
+        // Snapshot
+        case 'boolean':
+        case 'number':
+        case 'string':
+        case 'bigint':
+            evictionStateMap.set(identity, state)
+            break
+        case 'object':
+            // Null
+            if (state === null) {
+                evictionStateMap.set(identity, state)
+                break
+            }
+
+            // Serialize Object | Array
+            if (options.serialize && (isPlainObjectPartialCheck(state) || isArray(state))) {
+                evictionStateMap.set(identity, JSON.stringify(state))
+                overwriteSerializedIdentities.add(identity)
+                break
+            }
+
+
+            // Array | Plain Object | Map | Set | Date | Error | RegExp
+            if (
+                isArray(state)
+                || isPlainObjectPartialCheck(state)
+                || state instanceof Map
+                || state instanceof Set
+                || state instanceof Date
+                || state instanceof Error
+                || state instanceof RegExp
+            ) {
+                evictionStateMap.set(identity, structuredClone(state))
+                break
+            }
+
+        case 'symbol':
+            // Pending 
+            if (state === pending) {
+                evictionStateMap.set(identity, pending)
+                break
+            }
+
+            // Repending
+            if (state === republish) {
+                // Todo reaction last state of identity 
+                break
+            }
+    }
+}
+
+
+
+
+
+const addState = (identity, state, options = {}) => {
     if (state === undefined) return console.error('state is undefined', state)
     if (identity === undefined) return console.error('identity is undefined', identity)
     if (options === undefined) return console.error('options is undefined', options)
 
+    const mode = options.mode || 'overwrite'
+
+    if (mode === 'overwrite') {
+        overwriteEvictionState(identity, state, options)
+        return
+    }
 
     const currentTimestamp = getTimestamp()
     const mergeFidelity = chainConfig.mergeFidelity
 
-    // Add state to registry
-    const [typeRegistryName, stateIndex] = addStateAndGetLocation(state, options)
 
-    if (typeRegistryName === null) return
+    // Persist State
+    if (mode === 'persist') {
+        // Add state to registry
+        const [typeRegistryName, stateIndex, isStateSerialized] = persistStateAndGetLocation(state, options)
+        if (typeRegistryName === null) return
 
-    const lastFrame = accumulator.at(-1)
-    const lastFrameTimeStamp = lastFrame.timestamp || 0
-    // If within proximity merge. 
-    const withinMergePeriod = lastFrameTimeStamp + mergeFidelity > currentTimestamp
+        const lastFrame = accumulator.at(-1)
+        const lastFrameTimeStamp = lastFrame?.timestamp || 0
+        // If within proximity merge. 
+        const withinMergePeriod = lastFrameTimeStamp + mergeFidelity > currentTimestamp
 
-    // Add state to accumulator
-    if (withinMergePeriod) {
-        // merge to last frame writing over any existing state of the same identity.
-        if (lastFrame[identity]) (delete lastFrame[identity])
-        lastFrame[identity] = { typeRegistryName, stateIndex }
-    } else {
-        // Add new frame.
-        const frame = {}
-        frame.timestamp = currentTimestamp
-        frame[identity] = {
-            typeRegistryName,
-            stateIndex
+        // Add state to accumulator
+        if (lastFrame !== undefined && withinMergePeriod) {
+            // merge to last frame writing over any existing state of the same identity.
+            if (lastFrame[identity]) (delete lastFrame[identity])
+            lastFrame[identity] = isStateSerialized ? { typeRegistryName, stateIndex, isStateSerialized } : { typeRegistryName, stateIndex }
+        } else {
+            // Add new frame.
+            const frame = {}
+            frame.timestamp = currentTimestamp
+            frame[identity] = isStateSerialized ? {
+                typeRegistryName,
+                stateIndex,
+                isStateSerialized
+            } : {
+                typeRegistryName,
+                stateIndex
+            }
+            accumulator.push(frame)
         }
-        accumulator.push(frame)
+        return
     }
 }
 
-addState('apple', {}, 'hello world ')
 
-console.info('registry', uniqueStateMap)
-console.info('acc', accumulator)
 
-// export {
-//     addState
-// }
+const dummyData = {
+    users: [
+        { id: 1, name: "John", age: 28, email: "john@example.com", active: true },
+        { id: 2, name: "Jane", age: 34, email: "jane@example.com", active: false },
+        { id: 3, name: "Mike", age: 22, email: "mike@example.com", active: true }
+    ],
+    products: [
+        { id: 101, name: "Laptop", price: 999.99, stock: 50 },
+        { id: 102, name: "Phone", price: 499.99, stock: 100 },
+        { id: 103, name: "Tablet", price: 299.99, stock: 75 }
+    ],
+    orders: [
+        { id: 1001, userId: 1, productId: 101, amount: 999.99, status: "Shipped" },
+        { id: 1002, userId: 2, productId: 102, amount: 499.99, status: "Pending" },
+        { id: 1003, userId: 3, productId: 103, amount: 299.99, status: "Delivered" }
+    ]
+}
+
+const dummyArray = [
+    { id: 1, name: "John", age: 28, email: "john@example.com", active: true },
+    { id: 2, name: "Jane", age: 34, email: "jane@example.com", active: false },
+    { id: 3, name: "Mike", age: 22, email: "mike@example.com", active: true },
+    { id: 4, name: "Sara", age: 25, email: "sara@example.com", active: true },
+    { id: 5, name: "David", age: 40, email: "david@example.com", active: false }
+]
+
+
+// addState('zap', 'hello world', { mode: 'overwrite' })
+// addState('horse', 'Esp gerge', { mode: 'overwrite' })
+// addState('meyow', 1e60, { mode: 'overwrite' })
+
+// addState('apple', [1, 2, 3, 4], { mode: 'overwrite', serializeArray: true })
+// addState('apple2', [1, 2, 3, 4], { mode: 'overwrite', serializeArray: false })
+// addState('banana', { 1: 'hello', 2: 'world', 3: 'banana' }, { mode: 'overwrite', serializePlainObject: true })
+// addState('banana2', { 1: 'hello', 2: 'world', 3: 'banana' }, { mode: 'overwrite', serializePlainObject: false })
+
+
+// addState('test', { greeting: "hello", obj: { yo: 123, blob: new Blob() } }, { mode: 'persist', serializePlainObject: false })
+
+addState('test', dummyData, { mode: 'overwrite', serialize: false })
+// console.info('Overwrite registry', evictionStateMap)
+
+addState('test2', dummyArray, { mode: 'overwrite', serialize: false })
+
+// console.info('Persistent registry', uniqueStateMap)
+// console.info('Persistent acc', accumulator)
+
+// console.info('Get persistent state', getPersistentState('test'))
+
+// console.info('Overwrite registry', evictionStateMap)
+// console.info('Get persistent state', readEvictionState('test'))
+// console.info('Get persistent state', readEvictionState('test2'))
+
+
+
+export {
+    addState
+}
+
+
+
+
+
+/*
+# Inital chain
+o.config({}) // Anywhere in the code once. 
+
+o`images > trees > showBaobab`(false)
+
+# Create new chain
+o.createChain('menu')
+
+o.menu`top-nav > help-drop-down`([])
+
+*/

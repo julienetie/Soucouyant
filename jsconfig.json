@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "esnext", // Specify ECMAScript target version (ES5, ES6, ESNext)
         "module": "ESNext", // Specify module code generation
-        "checkJs": true, // Enable type checking in JavaScript files
+        "checkJs": false, // Enable type checking in JavaScript files
         "baseUrl": "./src", // Base directory to resolve non-relative module names
         "paths": {
             "*": [
