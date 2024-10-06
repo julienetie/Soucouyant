@@ -379,10 +379,6 @@ const addState = (identity, options, state) => {
 }
 
 addState('apple', {}, 'hello world ')
-addState('cars', { serializePlainObject: true }, 'how iz you ')
-addState('banana', { serializePlainObject: true }, 'blue berriese')
-addState('cars', { serializePlainObject: true }, 12424124)
-addState('pear', { serializeArray: true }, ['~', NaN, false])
 
 console.info('registry', uniqueStateMap)
 console.info('acc', accumulator)
