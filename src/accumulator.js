@@ -1,3 +1,20 @@
+/*
+    What is a chain?
+    - evictionStatMap or accumulator
+
+    - evictionStatMap
+        - config
+          - mergeFidelity
+          - safeIntegers
+          - serialize
+        - evictionSerializedIdentities
+
+    
+
+
+
+*/
+
 const empty = ''
 
 const chainConfig = {
@@ -17,7 +34,7 @@ const precision = 'moderate' // 'moderate' | 'high'
 
 const { isArray } = Array
 
-const accumulator = []
+// const accumulator = []
 
 const uniqueStateMap = new Map([
     ['null', null],
@@ -41,8 +58,7 @@ const uniqueStateMap = new Map([
     ['pending', [pending]]
 ])
 
-const evictionStateMap = new Map()
-const overwriteSerializedIdentities = new Set()
+
 
 
 const getTimestamp = precision === 'moderate' ? Date.now : performance.now
@@ -101,15 +117,14 @@ const areSetsSimilar = (setA, setB) => {
 
 let plainObjectDedupType = empty
 let arrayDedupType = empty
-const persistStateAndGetLocation = (state, options = {}) => {
+const persistStateAndGetLocation = (config, internal, state) => {
     const stateType = typeof state
-    const isEvict = options.mode === 'overwrite'
 
     let stateIndex
     let typeRegistryIndex
     let typeRegistry
     let typeRegistryName
-    let isStateSerialized
+    let isSerialized
     switch (stateType) {
         // Snapshot
         case 'boolean':
@@ -190,14 +205,15 @@ const persistStateAndGetLocation = (state, options = {}) => {
             if (isPlainObjectPartialCheck(state)) {
                 typeRegistryName = 'plain-object'
                 typeRegistry = uniqueStateMap.get(typeRegistryName)
-
-                if (options.serialize) {
-                    if (plainObjectDedupType === 'cloned') {
+                console.log('config', config)
+                if (config.jsonObjects) {
+                    console.log('yes')
+                    if (internal.plainObjectDedupType === 'cloned') {
                         console.error(`stateType ${stateType} supports cloned objects only and cannot support serialized objects within this chain.`)
                         return [null, null]
                     }
-                    plainObjectDedupType = 'serialized'
-                    isStateSerialized = true
+                    internal.plainObjectDedupType = 'serialized'
+                    isSerialized = true
                     const stateSerialized = JSON.stringify(state)
                     typeRegistryIndex = typeRegistry.serialized.indexOf(stateSerialized)
 
@@ -211,11 +227,11 @@ const persistStateAndGetLocation = (state, options = {}) => {
                     }
                     break
                 }
-                if (plainObjectDedupType === 'serialized') {
+                if (internal.plainObjectDedupType === 'serialized') {
                     console.error(`stateType ${stateType} supports serialized objects only and cannot support cloned objects within this chain.`)
                     return [null, null]
                 }
-                plainObjectDedupType = 'cloned'
+                internal.plainObjectDedupType = 'cloned'
                 typeRegistryIndex = typeRegistry.cloned.findIndex(obj => arePlainObjectsSimilar(obj, state))
                 if (typeRegistryIndex > -1) {
                     stateIndex = typeRegistryIndex
@@ -233,13 +249,13 @@ const persistStateAndGetLocation = (state, options = {}) => {
                 typeRegistryName = 'array'
                 typeRegistry = uniqueStateMap.get(typeRegistryName)
 
-                if (options.serialize) {
-                    if (arrayDedupType === 'cloned') {
+                if (config.jsonArrays) {
+                    if (internal.arrayDedupType === 'cloned') {
                         console.error(`stateType ${stateType} supports cloned arrays only and cannot support serialized arrays within this chain.`)
                         return [null, null]
                     }
-                    arrayDedupType = 'serialized'
-                    isStateSerialized = true
+                    internal.arrayDedupType = 'serialized'
+                    isSerialized = true
                     const stateSerialized = JSON.stringify(state)
                     typeRegistryIndex = typeRegistry.serialized.indexOf(stateSerialized)
                     if (typeRegistryIndex > -1) {
@@ -254,11 +270,11 @@ const persistStateAndGetLocation = (state, options = {}) => {
                 }
 
 
-                if (arrayDedupType === 'serialized') {
+                if (internal.arrayDedupType === 'serialized') {
                     console.error(`stateType ${stateType} supports serialized arrays only and cannot support clond arrays within this chain.`)
                     return [null, null]
                 }
-                arrayDedupType = 'cloned'
+                internal.arrayDedupType = 'cloned'
                 typeRegistryIndex = typeRegistry.cloned.findIndex(array => areArraysSimilar(array, state))
                 if (typeRegistryIndex > -1) {
                     stateIndex = typeRegistryIndex
@@ -325,7 +341,7 @@ const persistStateAndGetLocation = (state, options = {}) => {
     }
 
 
-    return [typeRegistryName, stateIndex, isStateSerialized]
+    return [typeRegistryName, stateIndex, isSerialized]
 
 }
 
@@ -334,7 +350,7 @@ const getPersistentState = (identity) => {
 
     if (frame) {
 
-        const { typeRegistryName, stateIndex, isStateSerialized } = frame[identity]
+        const { typeRegistryName, stateIndex, isSerialized } = frame[identity]
         // Boolean 
         if (typeRegistryName === 'boolean') return !!stateIndex
 
@@ -351,12 +367,12 @@ const getPersistentState = (identity) => {
             case 'null':
                 return null
             case 'plain-object':
-                if (isStateSerialized) {
+                if (isSerialized) {
                     return JSON.parse(registry.serialized[stateIndex])
                 }
                 return registry.cloned[stateIndex]
             case 'array':
-                if (isStateSerialized) {
+                if (isSerialized) {
                     return JSON.parse(registry.serialized[stateIndex])
                 }
                 return registry.cloned[stateIndex]
@@ -372,13 +388,19 @@ const getPersistentState = (identity) => {
 
 
 const readEvictionState = (identity) => {
-    const isSerialized = overwriteSerializedIdentities.has(identity)
+    const isSerialized = evictionSerializedIdentities.has(identity)
     const rawState = evictionStateMap.get(identity)
     return isSerialized ? JSON.parse(rawState) : rawState
 }
 
 
-const overwriteEvictionState = (identity, state, options = {}) => {
+const overwriteEvictionState = (
+    evictionStateMap,
+    evictionSerializedIdentities,
+    config,
+    identity,
+    state
+) => {
     const stateType = typeof state
     switch (stateType) {
         // Snapshot
@@ -396,9 +418,9 @@ const overwriteEvictionState = (identity, state, options = {}) => {
             }
 
             // Serialize Object | Array
-            if (options.serialize && (isPlainObjectPartialCheck(state) || isArray(state))) {
+            if ((config.jsonArrays && isArray(state)) || (config.jsonObjects && isPlainObjectPartialCheck(state))) {
                 evictionStateMap.set(identity, JSON.stringify(state))
-                overwriteSerializedIdentities.add(identity)
+                evictionSerializedIdentities.add(identity)
                 break
             }
 
@@ -436,30 +458,44 @@ const overwriteEvictionState = (identity, state, options = {}) => {
 
 
 
-const addState = (identity, state, options = {}) => {
+// const setState = (identity, state, options = {}) => {
+const setState = (
+    config,
+    internal,
+    accumulator,
+    evictionStateMap,
+    evictionSerializedIdentities,
+    identity,
+    state
+) => {
     if (state === undefined) return console.error('state is undefined', state)
     if (identity === undefined) return console.error('identity is undefined', identity)
-    if (options === undefined) return console.error('options is undefined', options)
-
-    const mode = options.mode || 'overwrite'
-
-    if (mode === 'overwrite') {
-        overwriteEvictionState(identity, state, options)
-        return
-    }
 
     const currentTimestamp = getTimestamp()
-    const mergeFidelity = chainConfig.mergeFidelity
+    const { mode, mergeFidelity } = config
 
+    if (mode === 'volitile') {
+        overwriteEvictionState(
+            evictionStateMap,
+            evictionSerializedIdentities,
+            config,
+            identity,
+            state
+        )
+        return
+    }
 
     // Persist State
     if (mode === 'persist') {
         // Add state to registry
-        const [typeRegistryName, stateIndex, isStateSerialized] = persistStateAndGetLocation(state, options)
+        const [typeRegistryName, stateIndex, isSerialized] = persistStateAndGetLocation(config, internal, state)
+
+        // Null is not persisted,it's alrady unique.
         if (typeRegistryName === null) return
 
         const lastFrame = accumulator.at(-1)
         const lastFrameTimeStamp = lastFrame?.timestamp || 0
+
         // If within proximity merge. 
         const withinMergePeriod = lastFrameTimeStamp + mergeFidelity > currentTimestamp
 
@@ -467,15 +503,15 @@ const addState = (identity, state, options = {}) => {
         if (lastFrame !== undefined && withinMergePeriod) {
             // merge to last frame writing over any existing state of the same identity.
             if (lastFrame[identity]) (delete lastFrame[identity])
-            lastFrame[identity] = isStateSerialized ? { typeRegistryName, stateIndex, isStateSerialized } : { typeRegistryName, stateIndex }
+            lastFrame[identity] = isSerialized ? { typeRegistryName, stateIndex, isSerialized } : { typeRegistryName, stateIndex }
         } else {
             // Add new frame.
             const frame = {}
             frame.timestamp = currentTimestamp
-            frame[identity] = isStateSerialized ? {
+            frame[identity] = isSerialized ? {
                 typeRegistryName,
                 stateIndex,
-                isStateSerialized
+                isSerialized
             } : {
                 typeRegistryName,
                 stateIndex
@@ -515,22 +551,22 @@ const dummyArray = [
 ]
 
 
-// addState('zap', 'hello world', { mode: 'overwrite' })
-// addState('horse', 'Esp gerge', { mode: 'overwrite' })
-// addState('meyow', 1e60, { mode: 'overwrite' })
+// setState('zap', 'hello world', { mode: 'overwrite' })
+// setState('horse', 'Esp gerge', { mode: 'overwrite' })
+// setState('meyow', 1e60, { mode: 'overwrite' })
 
-// addState('apple', [1, 2, 3, 4], { mode: 'overwrite', serializeArray: true })
-// addState('apple2', [1, 2, 3, 4], { mode: 'overwrite', serializeArray: false })
-// addState('banana', { 1: 'hello', 2: 'world', 3: 'banana' }, { mode: 'overwrite', serializePlainObject: true })
-// addState('banana2', { 1: 'hello', 2: 'world', 3: 'banana' }, { mode: 'overwrite', serializePlainObject: false })
+// setState('apple', [1, 2, 3, 4], { mode: 'overwrite', serializeArray: true })
+// setState('apple2', [1, 2, 3, 4], { mode: 'overwrite', serializeArray: false })
+// setState('banana', { 1: 'hello', 2: 'world', 3: 'banana' }, { mode: 'overwrite', serializePlainObject: true })
+// setState('banana2', { 1: 'hello', 2: 'world', 3: 'banana' }, { mode: 'overwrite', serializePlainObject: false })
 
 
-// addState('test', { greeting: "hello", obj: { yo: 123, blob: new Blob() } }, { mode: 'persist', serializePlainObject: false })
+// setState('test', { greeting: "hello", obj: { yo: 123, blob: new Blob() } }, { mode: 'persist', serializePlainObject: false })
 
-addState('test', dummyData, { mode: 'overwrite', serialize: false })
-// console.info('Overwrite registry', evictionStateMap)
+// setState('test', dummyData, { mode: 'overwrite', serialize: false })
+// // console.info('Overwrite registry', evictionStateMap)
 
-addState('test2', dummyArray, { mode: 'overwrite', serialize: false })
+// setState('test2', dummyArray, { mode: 'overwrite', serialize: false })
 
 // console.info('Persistent registry', uniqueStateMap)
 // console.info('Persistent acc', accumulator)
@@ -541,16 +577,85 @@ addState('test2', dummyArray, { mode: 'overwrite', serialize: false })
 // console.info('Get persistent state', readEvictionState('test'))
 // console.info('Get persistent state', readEvictionState('test2'))
 
+const isBrowser = () => {
+    const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined'
+    const isNode = typeof process !== 'undefined' && process.versions != null && process.versions.node != null
+    const isDeno = typeof Deno !== 'undefined'
+    const isBun = typeof Bun !== 'undefined'
 
+    return isBrowser && !(isNode || isDeno || isBun)
+}
 
-export {
-    addState
+/*
+    const config = {
+        mode: 'persist' | 'volatile'                            - Default is volatile
+        serialize: 'array' | 'object' | 'array | object'        - Default is empty 
+        mergeFidelity: <number>                                 - Default is 0
+        integerSaturation: boolean                                  - Dfault is false
+        namespaceDepth:  0...Infinity                           - Limit of namespace length
+        invocation:    'setTimeout0' | 'queueMicrotask' | 'requestIdleCallback' | 'requestAnimationFrame' | 'sync'   - Default is requestAnimationFrame for browsers and queueMicrotask for backend runtimes.
+    }
+*/
+const defaultChainConfig = {
+    mode: 'volatile',
+    jsonObjects: false,
+    jsonArrays: false,
+    mergeFidelity: 0,
+    integerSaturation: true,
+    namespaceDepth: 4,
+    invocation: isBrowser ? globalThis?.requestAnimationFrame : queueMicrotask,
+}
+
+var a // to delete
+var b // to delete
+var c // to delete
+const chainFactory = (userConfig = {}, chainName) => {
+    const config = Object.assign({}, defaultChainConfig, userConfig)
+    const internal = { chainName }
+    const accumulator = []
+    const evictionStateMap = new Map()
+    const evictionSerializedIdentities = new Set()
+    a = accumulator // to delete
+    b = evictionStateMap // to delete
+    c = evictionSerializedIdentities // to delete
+    return {
+        setState: (identity, state) => setState(
+            config,
+            internal,
+            accumulator,
+            evictionStateMap,
+            evictionSerializedIdentities,
+            identity,
+            state
+        ),
+        getState: identity => getState(
+            config,
+            internal,
+            accumulator,
+            identity
+        ),
+    }
 }
 
 
+const chainA = chainFactory({ mode: 'volitile', jsonObjects: false, jsonArrays: false })
+// console.log('uniqueStateMap', uniqueStateMap)
+// console.log('acc', a)
+chainA.setState('score', dummyArray)
+// chainA.setState('score', dummyData)
 
 
+// export {
+//     setState
+// }
+// const chainB = chainFactory({ mode: 'persist', jsonObjects: true })
 
+// chainB.setState('score', dummyData)
+
+// console.log('uniqueStateMap', uniqueStateMap)
+console.log('a', a)
+console.log('b', b)
+console.log('c', c)
 /*
 # Inital chain
 o.config({}) // Anywhere in the code once. 

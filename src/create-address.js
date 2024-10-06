@@ -8,6 +8,7 @@ import cache from './cache.js';
  * @param {number} identity - the unique state subscription identifier
  */
 const stateMachine = (state, identity) => {
+    console.log('stateMachine')
     const stateModifier = callback => {
         const lastState = state === null ? getCurrentState(identity) : state;
         const newState = callback(lastState);
@@ -100,12 +101,10 @@ const createAddress = (addressParts, count, state, length, isCollection, nextPar
         // beyond the first (I think)
         const isEndOfPath = count === length - 1;
         if (nextPart[newPart] === undefined) {
-            identity++;
-            const machine = isEndOfPath ? isCollection ? state : stateMachine(state, identity) : {};
-            nextPart = nextPart[newPart] = machine; // Creates the next property as an object.
-            if (isEndOfPath) {
-                return;
-            }
+            identity++
+            nextPart = nextPart[newPart] = isEndOfPath ? stateMachine(state, identity) : {} // Creates the next property as an object.
+            if (isEndOfPath) return
+
         } else {
             nextPart = nextPart[newPart];
             if (isEndOfPath) {

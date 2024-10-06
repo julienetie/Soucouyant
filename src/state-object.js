@@ -10,6 +10,7 @@ import createAddress from './create-address.js';
  * @returns {Function} StateObject.
  */
 const stateObject = (address, state) => {
+    console.log('address', address)
     const addressParts = address[0].split('>')
     const addressPartsLength = addressParts.length
     createAddress(
@@ -18,12 +19,10 @@ const stateObject = (address, state) => {
         state,
         addressPartsLength,
         false,
-        null
+        null,
+        stateObject
     )
     return stateObject
 }
-
-// Create additional timeline chains
-stateObject.createChain = chainName => { }
 
 export default stateObject
