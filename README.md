@@ -1,5 +1,7 @@
-# Soucouyant - Work In Progress
-![Soucouyant Logo](https://github.com/julienetie/soucouyant/blob/main/soucouyant-logo.webp?raw=true)
+
+# Soucouyant - (work in progress)
+
+<img align="center" src="https://github.com/user-attachments/assets/60e17077-a633-4791-b0b8-59e7c46b962c" width="600">
 
 ## Relational State Management
 
@@ -59,3 +61,8 @@ const { o, pending, republish, alias, head, chain, mutex } = require('soucouyant
 ```
 ### [Get Started](https://github.com/julienetie/soucouyant/blob/main/GET_STARTED.md)
 ## [Soucouyant API Documentation](https://github.com/julienetie/soucouyant/blob/main/DOCUMENTATION.md)
+
+
+_Arwork by [alexandra Guardia](https://www.deviantart.com/alexndhearted)_
+
+MIT © Julien Etienne 2024
