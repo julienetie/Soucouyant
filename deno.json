@@ -1,0 +1,12 @@
+{
+    "imports": {
+        "eslint-plugin-import": "npm:eslint-plugin-import@2.29.1",
+        "eslint-plugin-n": "npm:eslint-plugin-n@16.6.2",
+        "eslint-plugin-promise": "npm:eslint-plugin-promise@6.1.1"
+    }
+    "tasks": {
+        "d": "http-server",
+        "test" : "deno test",
+        "lint": "deno run --allow-all npm:eslint"
+    }
+}

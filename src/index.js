@@ -5,7 +5,7 @@ const o = stateObjectPartial('main')
 
 // Create additional timeline chains
 o.createChain = (chainName, config) => {
-    o[chainName] = stateObjectPartial(chainName, config)
+  o[chainName] = stateObjectPartial(chainName, config)
 }
 
 export { o }

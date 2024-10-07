@@ -2,17 +2,8 @@
   "name": "soucouyant",
   "version": "0.0.1",
   "description": "Relational State Management",
-  "main": "index.js",
+  "main": "src/index.js",
   "type": "module",
-  "scripts": {
-    "test": "NODE_ENV=test ./node_modules/.bin/mocha --inspect --no-warnings --recursive ./test",
-    "d": "node ./test/sandbox1.js",
-    "p": "node ./test/sandbox2.js",
-    "lint": "./node_modules/.bin/eslint --fix ./src"
-  },
-  "engines": {
-    "node": ">=20.11.0"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/julienetie/soucouyant.git"
@@ -24,12 +15,8 @@
   },
   "homepage": "https://github.com/julienetie/soucouyant#readme",
   "devDependencies": {
-    "chai": "^5.0.3",
-    "eslint": "^8.57.1",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-n": "^17.10.3",
-    "eslint-plugin-promise": "^7.1.0",
-    "mocha": "^10.2.0"
+    "@eslint/js": "^9.12.0",
+    "eslint": "^9.12.0",
+    "globals": "^15.10.0"
   }
 }
