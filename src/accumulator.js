@@ -345,7 +345,11 @@ const persistStateAndGetLocation = (config, internal, state) => {
 
 }
 
-const getPersistentState = (identity) => {
+const getPersistentState = (
+    config,
+    accumulator,
+    identity
+) => {
     const frame = accumulator.findLast(frame => frame[identity])
 
     if (frame) {
@@ -387,7 +391,12 @@ const getPersistentState = (identity) => {
 }
 
 
-const readEvictionState = (identity) => {
+const readEvictionState = (
+    config,
+    evictionStateMap,
+    evictionSerializedIdentities,
+    identity
+) => {
     const isSerialized = evictionSerializedIdentities.has(identity)
     const rawState = evictionStateMap.get(identity)
     return isSerialized ? JSON.parse(rawState) : rawState
@@ -476,8 +485,7 @@ const setState = (
 
     if (mode === 'volitile') {
         overwriteEvictionState(
-            evictionStateMap,
-            evictionSerializedIdentities,
+            accumulator,
             config,
             identity,
             state
@@ -519,6 +527,34 @@ const setState = (
             accumulator.push(frame)
         }
         return
+    }
+}
+
+
+const getState = (
+    config,
+    internal,
+    accumulator,
+    evictionStateMap,
+    evictionSerializedIdentities,
+    identity
+) => {
+    if (config.mode === 'volitile') {
+        return readEvictionState(
+            config,
+            evictionStateMap,
+            evictionSerializedIdentities,
+            identity
+        )
+
+    }
+
+    if (config.mode === 'persist') {
+        return getPersistentState(
+            config,
+            accumulator,
+            identity
+        )
     }
 }
 
@@ -632,16 +668,22 @@ const chainFactory = (userConfig = {}, chainName) => {
             config,
             internal,
             accumulator,
+            evictionStateMap,
+            evictionSerializedIdentities,
             identity
         ),
     }
 }
 
 
-const chainA = chainFactory({ mode: 'volitile', jsonObjects: false, jsonArrays: false })
+const chainA = chainFactory({ mode: 'persist', jsonObjects: false, jsonArrays: true })
 // console.log('uniqueStateMap', uniqueStateMap)
 // console.log('acc', a)
 chainA.setState('score', dummyArray)
+// chainA.setState('score', 'no way')
+console.log(
+    chainA.getState('score')
+)
 // chainA.setState('score', dummyData)
 
 
@@ -653,9 +695,9 @@ chainA.setState('score', dummyArray)
 // chainB.setState('score', dummyData)
 
 // console.log('uniqueStateMap', uniqueStateMap)
-console.log('a', a)
-console.log('b', b)
-console.log('c', c)
+// console.log('a', a)
+// console.log('b', b)
+// console.log('c', c)
 /*
 # Inital chain
 o.config({}) // Anywhere in the code once. 
