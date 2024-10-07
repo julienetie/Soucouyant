@@ -15,6 +15,5 @@
     ], // Specify the files or folders to include
     "exclude": [
         "node_modules",
-        "**/*.spec.js"
     ] // Specify files or folders to exclude
 }
