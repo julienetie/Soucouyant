@@ -171,7 +171,6 @@ const addNewState = (state, identity) => {
         ]);
     }
 
-    // console.log('cache',cache)
     const subscriptions = cache.subscriptions;
     // Execute subscriptions
     if (subscriptions[identity] === undefined) {
@@ -183,8 +182,6 @@ const addNewState = (state, identity) => {
     for (let ref in subIdentity) {
         subIdentity[ref](directReference, identity, currentTimeStamp);
     }
-
-    // console.log('primaryChain', JSON.stringify(primaryChain, null, '\t'));
 }
 
 const getCurrentState = (identity) => {
@@ -288,7 +285,6 @@ let identity = -1;
  */
 const createAddress = (addressParts, count, state, length, isCollection, nextPart) => {
     const newPart = (addressParts[count] + '').trim();
-    console.log('newPart', addressParts, count, state, length, isCollection, nextPart)
 
     if (length === 1) {
         objectAccessor[newPart] = stateMachine(state, identity)

@@ -1,20 +1,3 @@
-/*
-    What is a chain?
-    - evictionStatMap or accumulator
-
-    - evictionStatMap
-        - config
-          - mergeFidelity
-          - safeIntegers
-          - serialize
-        - evictionSerializedIdentities
-
-    
-
-
-
-*/
-
 const empty = ''
 
 const chainConfig = {
@@ -205,9 +188,8 @@ const persistStateAndGetLocation = (config, internal, state) => {
             if (isPlainObjectPartialCheck(state)) {
                 typeRegistryName = 'plain-object'
                 typeRegistry = uniqueStateMap.get(typeRegistryName)
-                console.log('config', config)
+
                 if (config.jsonObjects) {
-                    console.log('yes')
                     if (internal.plainObjectDedupType === 'cloned') {
                         console.error(`stateType ${stateType} supports cloned objects only and cannot support serialized objects within this chain.`)
                         return [null, null]
@@ -404,9 +386,9 @@ const readEvictionState = (
 
 
 const overwriteEvictionState = (
+    config,
     evictionStateMap,
     evictionSerializedIdentities,
-    config,
     identity,
     state
 ) => {
@@ -482,11 +464,11 @@ const setState = (
 
     const currentTimestamp = getTimestamp()
     const { mode, mergeFidelity } = config
-
-    if (mode === 'volitile') {
+    if (mode === 'volatile') {
         overwriteEvictionState(
-            accumulator,
             config,
+            evictionStateMap,
+            evictionSerializedIdentities,
             identity,
             state
         )
@@ -539,7 +521,7 @@ const getState = (
     evictionSerializedIdentities,
     identity
 ) => {
-    if (config.mode === 'volitile') {
+    if (config.mode === 'volatile') {
         return readEvictionState(
             config,
             evictionStateMap,
@@ -642,18 +624,18 @@ const defaultChainConfig = {
     invocation: isBrowser ? globalThis?.requestAnimationFrame : queueMicrotask,
 }
 
-var a // to delete
-var b // to delete
-var c // to delete
-const chainFactory = (userConfig = {}, chainName) => {
+// var a // to delete
+// var b // to delete
+// var c // to delete
+const chainFactory = (chainName, userConfig = {}) => {
     const config = Object.assign({}, defaultChainConfig, userConfig)
     const internal = { chainName }
     const accumulator = []
     const evictionStateMap = new Map()
     const evictionSerializedIdentities = new Set()
-    a = accumulator // to delete
-    b = evictionStateMap // to delete
-    c = evictionSerializedIdentities // to delete
+    // a = accumulator // to delete
+    // b = evictionStateMap // to delete
+    // c = evictionSerializedIdentities // to delete
     return {
         setState: (identity, state) => setState(
             config,
@@ -676,14 +658,14 @@ const chainFactory = (userConfig = {}, chainName) => {
 }
 
 
-const chainA = chainFactory({ mode: 'persist', jsonObjects: false, jsonArrays: true })
-// console.log('uniqueStateMap', uniqueStateMap)
-// console.log('acc', a)
-chainA.setState('score', dummyArray)
-// chainA.setState('score', 'no way')
-console.log(
-    chainA.getState('score')
-)
+// const chainA = chainFactory({ mode: 'persist', jsonObjects: false, jsonArrays: true })
+// // console.log('uniqueStateMap', uniqueStateMap)
+// // console.log('acc', a)
+// chainA.setState('score', dummyArray)
+// // chainA.setState('score', 'no way')
+// console.log(
+//     chainA.getState('score')
+// )
 // chainA.setState('score', dummyData)
 
 
@@ -710,3 +692,7 @@ o.createChain('menu')
 o.menu`top-nav > help-drop-down`([])
 
 */
+
+export {
+    chainFactory
+}

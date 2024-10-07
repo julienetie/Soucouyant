@@ -1,16 +1,11 @@
-import o from './state-object.js'
+import stateObjectPartial from './state-object.js'
 
-const reservedWords = [
-    'createChain'
-]
+// Create main chain
+const o = stateObjectPartial('main')
 
 // Create additional timeline chains
-o.createChain = chainName => {
-    if (reservedWords.includes(chainName)) return console
-        .error(`Soucouyant: Cannot create chain as ${chainName} is a reserved word.`)
-
-    o[chainName] = 'fake instance'
+o.createChain = (chainName, config) => {
+    o[chainName] = stateObjectPartial(chainName, config)
 }
-
 
 export { o }

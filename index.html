@@ -6,11 +6,80 @@
     <title>Document</title>
 </head>
 <body>
-    
+<script>
+
+const dummyData = {
+    users: [
+        { id: 1, name: "John", age: 28, email: "john@example.com", active: true },
+        { id: 2, name: "Jane", age: 34, email: "jane@example.com", active: false },
+        { id: 3, name: "Mike", age: 22, email: "mike@example.com", active: true }
+    ],
+    products: [
+        { id: 101, name: "Laptop", price: 999.99, stock: 50 },
+        { id: 102, name: "Phone", price: 499.99, stock: 100 },
+        { id: 103, name: "Tablet", price: 299.99, stock: 75 }
+    ],
+    orders: [
+        { id: 1001, userId: 1, productId: 101, amount: 999.99, status: "Shipped" },
+        { id: 1002, userId: 2, productId: 102, amount: 499.99, status: "Pending" },
+        { id: 1003, userId: 3, productId: 103, amount: 299.99, status: "Delivered" }
+    ]
+}
+
+const dummyArray = [
+    { id: 1, name: "John", age: 28, email: "john@example.com", active: true },
+    { id: 2, name: "Jane", age: 34, email: "jane@example.com", active: false },
+    { id: 3, name: "Mike", age: 22, email: "mike@example.com", active: true },
+    { id: 4, name: "Sara", age: 25, email: "sara@example.com", active: true },
+    { id: 5, name: "David", age: 40, email: "david@example.com", active: false }
+]
+
+
+// setState('zap', 'hello world', { mode: 'overwrite' })
+// setState('horse', 'Esp gerge', { mode: 'overwrite' })
+// setState('meyow', 1e60, { mode: 'overwrite' })
+
+// setState('apple', [1, 2, 3, 4], { mode: 'overwrite', serializeArray: true })
+// setState('apple2', [1, 2, 3, 4], { mode: 'overwrite', serializeArray: false })
+// setState('banana', { 1: 'hello', 2: 'world', 3: 'banana' }, { mode: 'overwrite', serializePlainObject: true })
+// setState('banana2', { 1: 'hello', 2: 'world', 3: 'banana' }, { mode: 'overwrite', serializePlainObject: false })
+
+
+// setState('test', { greeting: "hello", obj: { yo: 123, blob: new Blob() } }, { mode: 'persist', serializePlainObject: false })
+
+// setState('test', dummyData, { mode: 'overwrite', serialize: false })
+// // console.info('Overwrite registry', evictionStateMap)
+
+// setState('test2', dummyArray, { mode: 'overwrite', serialize: false })
+
+// console.info('Persistent registry', uniqueStateMap)
+// console.info('Persistent acc', accumulator)
+
+// console.info('Get persistent state', getPersistentState('test'))
+
+// console.info('Overwrite registry', evictionStateMap)
+// console.info('Get persistent state', readEvictionState('test'))
+// console.info('Get persistent state', readEvictionState('test2'))
+</script>    
     <script type="module">
         import { o } from './src/index.js'
 
-        console.log(o)
+        window.o = o 
+        o`test > a123 ${['This is default']}`
+        o.test.a123(state => console.log(state))
+        // o`test > a123 ${['This is newer state']}` // This is inital state, this should break. 
+        o.test.a123(state => ['this is new state'])
+        o.test.a123(state => console.log(state))
+
+        o.createChain('Monster')
+
+        o.Monster`big > green > sound ${{noise: 'roar'}}`
+        o.Monster.big.green.sound(state => console.log(state))
+        o.Monster.big.green.sound(_ => ({noise: 'meoyow'}))
+        o.Monster.big.green.sound(state => console.log(state))
+        
+
+
     </script>
 </body>
 </html>
