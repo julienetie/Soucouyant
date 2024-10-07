@@ -1,8 +1,6 @@
-// import { addNewState, getCurrentState } from './accumulator.js';
+import { startsWithUppercase } from './helpers.js'
 import { chainFactory } from './accumulator.js'
 import cache from './cache.js'
-
-const startsWithUppercase = string => /^[A-Z]/.test(string)
 
 /**
  * @param {*} state

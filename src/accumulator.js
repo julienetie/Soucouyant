@@ -1,15 +1,19 @@
-const pending = Symbol('pending')
-const republish = Symbol('republish')
+import {
+  pending,
+  republish,
+  isArray,
+  isPlainObjectPartialCheck,
+  areErrorsSimilar,
+  areDatesSimilar,
+  areRegExpSimilar,
+  arePlainObjectsSimilar,
+  areArraysSimilar,
+  areMapsSimilar,
+  areSetsSimilar
+} from './helpers.js'
 
 // Options start
 const precision = 'moderate' // 'moderate' | 'high'
-// const mergeFidelity
-// const typeTransform
-// Options end
-
-const { isArray } = Array
-
-// const accumulator = []
 
 const uniqueStateMap = new Map([
   ['null', null],
@@ -34,56 +38,6 @@ const uniqueStateMap = new Map([
 ])
 
 const getTimestamp = precision === 'moderate' ? Date.now : performance.now
-
-const isPlainObjectPartialCheck = value => {
-  const proto = Object.getPrototypeOf(value)
-  return proto === null || proto === Object.prototype
-}
-
-const areErrorsSimilar = (errorA, errorB) => (
-  errorA.name === errorB.name
-  && errorA.message === errorB.message
-  && errorA.constructor === errorB.constructor
-)
-
-const areDatesSimilar = (dateA, dateB) => dateA.valueOf() === dateB.valueOf()
-
-const areRegExpSimilar = (regexA, regexB) => regexA.source === regexB.source && regexA.flags === regexB.flags
-
-const arePlainObjectsSimilar = (objA, objB) => {
-  const keysA = Object.keys(objA)
-  const keysB = Object.keys(objB)
-
-  if (keysA.length !== keysB.length) return false
-
-  for (const key of keysA) {
-    if (objA[key] !== objB[key]) return false
-  }
-  return true
-}
-
-const areArraysSimilar = (arrA, arrB) => {
-  if (arrA.length !== arrB.length) return false
-  return arrA.every((value, i) => value === arrB[i])
-}
-
-const areMapsSimilar = (mapA, mapB) => {
-  if (mapA.size !== mapB.size) return false
-
-  for (const [key, val] of mapA) {
-    if (!mapB.has(key) || mapB.get(key) !== val) return false
-  }
-  return true
-}
-
-const areSetsSimilar = (setA, setB) => {
-  if (setA.size !== setB.size) return false
-
-  for (const item of setA) {
-    if (!setB.has(item)) return false
-  }
-  return true
-}
 
 const persistStateAndGetLocation = (config, internal, state) => {
   const stateType = typeof state

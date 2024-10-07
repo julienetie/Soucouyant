@@ -5,7 +5,7 @@
         "eslint-plugin-promise": "npm:eslint-plugin-promise@6.1.1"
     }
     "tasks": {
-        "d": "http-server",
+        "d": "http-server -o test/index.html",
         "test" : "deno test",
         "lint": "deno run --allow-all npm:eslint"
     }
