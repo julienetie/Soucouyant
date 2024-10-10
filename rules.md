@@ -1,3 +1,14 @@
+- 1.1 `o`: `o` Represents the main chain (main timeline) for state-objects.
+- 1.2 `o`` `: A chain cannot have an empty address.
+- 1.3 ``` o`main` ```: An address on the main-chain cannot begin with "main"
+- 1.4 ``` o`Greeting` ```: An address on the main-chain cannot begin with a capital letter
+- 1.5 ``` o`_greeting` ```: An address on the main-chain cannot begin with an underscore
+- 1.7 ``` o`obeah > myal > bacoo`() ```: Nested namespace categories are created using ` > `
+- 1.7 ``` o.obeah.myal.bacoo() ```: Then the state-object (function) can be reached using dot notation. 
+- 1.7 ``` o['obeah'].myal['bacoo']() ```: The state-object can also be reached using bracket notation. 
+- 1.7 ``` o`obeah > myal > bacoo`() ```: An address defined without a default state will default to `pending`
+- 1.7 ``` o`obeah > myal > bacoo`() ```: An address defined without a default state will default to `pending`
+
 
 ## Types of Timelines 
 There are three types of Timelines: 
