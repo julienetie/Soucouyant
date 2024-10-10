@@ -430,14 +430,14 @@ const setState = (
       frame.timestamp = currentTimestamp
       frame[identity] = isSerialized
         ? {
-          typeRegistryName,
-          stateIndex,
-          isSerialized
-        }
+            typeRegistryName,
+            stateIndex,
+            isSerialized
+          }
         : {
-          typeRegistryName,
-          stateIndex
-        }
+            typeRegistryName,
+            stateIndex
+          }
       accumulator.push(frame)
     }
   }
