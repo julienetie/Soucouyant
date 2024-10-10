@@ -63,6 +63,6 @@ const { o, pending, republish, alias, head, chain, mutex } = require('soucouyant
 ## [Soucouyant API Documentation](https://github.com/julienetie/soucouyant/blob/main/DOCUMENTATION.md)
 
 
-_Arwork by [alexandra Guardia](https://www.deviantart.com/alexndhearted)_
+_Arwork by [Alexandra Guardia](https://www.deviantart.com/alexndhearted)_
 
 MIT © Julien Etienne 2024
