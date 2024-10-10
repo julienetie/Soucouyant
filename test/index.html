@@ -66,7 +66,7 @@
         import { o } from '../src/index.js'
 
         window.o = o 
-        o`test > a123 ${['This is default']}`
+        o`test > a123`(['This is default'])
         o.test.a123(state => console.log(state))
         // o`test > a123 ${['This is newer state']}` // This is inital state, this should break. 
         o.test.a123(state => ['this is new state'])
@@ -74,7 +74,7 @@
 
         o.createChain('Monster')
 
-        o.Monster`big > green > sound ${{noise: 'roar'}}`
+        o.Monster`big > green > sound`({noise: 'roar'})
         o.Monster.big.green.sound(state => console.log(state))
         o.Monster.big.green.sound(_ => ({noise: 'meoyow'}))
         o.Monster.big.green.sound(state => console.log(state))

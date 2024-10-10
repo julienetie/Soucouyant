@@ -169,33 +169,38 @@ const stateObjectPartial = (chainName, config = {}) => {
     createAddress(chain, addressParts, count, state, length, isCollection, nextPart)
   }
 
-  const stateObject = (address, state) => {
-    const addressParts = address[0].split('>')
-    if (addressParts.length === 0) return console.error('An address requires a namespace')
+  const stateObject = (address) => {
+    return (state) => {
+      const addressParts = address[0].split('>')
+      if (addressParts.length === 0) return console.error('An address requires a namespace')
 
-    console.log('@@@', state)
+      console.log('@@@', state)
 
-    if (chainName === 'main') {
-      const firstPartFirstChar = addressParts[0][0] || empty
-      if (firstPartFirstChar === empty) return console.error('Sououyant: Address cannot be an empty string')
+      if (chainName === 'main') {
+        const firstPartFirstChar = addressParts[0][0] || empty
+        if (firstPartFirstChar === empty) return console.error('Sououyant: Address cannot be an empty string')
 
-      if (firstPartFirstChar === '_' || firstPartFirstChar === firstPartFirstChar.toUpperCase()) {
-        return console.error('Soucouyant: The first address part on the main chain cannot begin with an underscore, capital letter or special character.')
+        if (firstPartFirstChar === '_' || firstPartFirstChar === firstPartFirstChar.toUpperCase()) {
+          return console.error('Soucouyant: The first address part on the main chain cannot begin with an underscore, capital letter or special character.')
+        }
       }
+      const addressPartsLength = addressParts.length
+      const chain = chainFactory(chainName, config)
+      createAddress(
+        chain,
+        addressParts,
+        0,
+        state,
+        addressPartsLength,
+        false,
+        null,
+        stateObject
+      )
+      return stateObject
     }
-    const addressPartsLength = addressParts.length
-    const chain = chainFactory(chainName, config)
-    createAddress(
-      chain,
-      addressParts,
-      0,
-      state,
-      addressPartsLength,
-      false,
-      null,
-      stateObject
-    )
-    return stateObject
+  }
+  stateObject.chain = {
+    name: chainName
   }
   return stateObject
 }

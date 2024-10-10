@@ -1,16 +1,21 @@
 // test.js (Deno 2.0 setup)
 import { assertEquals, assertInstanceOf } from 'https://deno.land/std@0.220.0/assert/mod.ts'
-import { o, pending } from '../src/index.js'
+import { o, pending, empty } from '../src/index.js'
 
 Deno.test('o - Should be a function with expected properties', () => {
   assertInstanceOf(o, Function) // Check if o is a function
   assertInstanceOf(o.createChain, Function) // Check if o is a function
+  assertEquals(o.chain.name, 'main')
 })
 Deno.test('o.`stateObject` - should return undefined for malformed namespaces', () => {
   // Cannot use an empty string
-  const noNamespace = o``
-  const firstCharUnderscore = o`_stateObject`
-  const firstCharUppercase = o`StateObject`
+  o``
+  o`_stateObject`
+  o`StateObject`
+
+  const noNamespace = o['']
+  const firstCharUnderscore = o._stateObject
+  const firstCharUppercase = o.StateObject
 
   // Cannot use an empty string
   assertEquals(noNamespace, undefined)
@@ -23,18 +28,14 @@ Deno.test('o.`stateObject` - should return undefined for malformed namespaces', 
 })
 
 Deno.test('o.`stateObject()` - should set the undefined created default state to pending', () => {
-  o`stateObject`
-  const noPlaceholder = o.stateObject()
+  o`stateObject`()
+  const noArg = o.stateObject()
 
-  o`stateObject2 ${undefined}`
-  const undefinedDefaultState = o.stateObject2()
-
-  assertEquals(noPlaceholder, pending)
-  assertEquals(undefinedDefaultState, pending)
+  assertEquals(noArg, pending)
 })
 
 Deno.test('o.`stateObject()` - should return test', () => {
-  o`shouldReturnNull${null}`
+  o`shouldReturnNull`(null)
 
   assertEquals(o.shouldReturnNull(), null) // Check if stateObject returns o
 })
