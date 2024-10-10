@@ -1,4 +1,4 @@
-import { pending, empty } from './helpers.js'
+import { pending } from './helpers.js'
 import stateObjectPartial from './state-object.js'
 
 // Create main chain
@@ -10,21 +10,21 @@ o.createChain = (chainName, config) => {
 }
 
 const Debug = {
-  mode: {
-    set enable(_) {
-      // Throws errors instead of console.error
-    },
-    set enableOnAddressStart(addressStart) {
-      // String or array of addresses
-      // Throws errors insread of console.error
-    }
-  },
-  logStatsOnChange() {
-
-  },
-  tableStatsOnChange() {
-
-  }
+  // mode: {
+  //   set enable(_) {
+  //     // Throws errors instead of console.error
+  //   },
+  //   set enableOnAddressStart(addressStart) {
+  //     // String or array of addresses
+  //     // Throws errors insread of console.error
+  //   }
+  // },
+  // logStatsOnChange() {
+  //
+  // },
+  // tableStatsOnChange() {
+  //
+  // }
 }
 
-export { o, pending, empty, Debug }
+export { o, pending, Debug }
