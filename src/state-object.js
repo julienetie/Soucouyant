@@ -87,7 +87,8 @@ const stateMachine = (chain, identity, state, isCreation) => {
 
 const reservedWords = [
   'createChain',
-  'config'
+  'config',
+  'chain'
 ]
 
 let hasMain = 0

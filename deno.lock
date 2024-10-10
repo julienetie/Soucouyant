@@ -1,12 +1,25 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@std/assert@*": "1.0.6",
+    "jsr:@std/internal@^1.0.4": "1.0.4",
     "npm:@eslint/js@^9.12.0": "9.12.0",
     "npm:eslint-plugin-import@2.29.1": "2.29.1_eslint@8.57.1",
     "npm:eslint-plugin-n@16.6.2": "16.6.2_eslint@9.12.0",
     "npm:eslint-plugin-promise@6.1.1": "6.1.1_eslint@8.57.1",
     "npm:eslint@^9.12.0": "9.12.0",
     "npm:globals@^15.10.0": "15.10.0"
+  },
+  "jsr": {
+    "@std/assert@1.0.6": {
+      "integrity": "1904c05806a25d94fe791d6d883b685c9e2dcd60e4f9fc30f4fc5cf010c72207",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/internal@1.0.4": {
+      "integrity": "62e8e4911527e5e4f307741a795c0b0a9e6958d0b3790716ae71ce085f755422"
+    }
   },
   "npm": {
     "@eslint-community/eslint-utils@4.4.0_eslint@8.57.1": {
