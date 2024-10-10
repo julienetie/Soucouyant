@@ -387,8 +387,10 @@ const setState = (
   identity,
   state
 ) => {
-  if (state === undefined) return console.error('state is undefined', state)
+  // if (state === undefined) return console.error('state is undefined', state)
   if (identity === undefined) return console.error('identity is undefined', identity)
+
+  console.log('Acc setState: state', state, evictionStateMap)
 
   const currentTimestamp = getTimestamp()
   const { mode, mergeFidelity } = config
@@ -428,14 +430,14 @@ const setState = (
       frame.timestamp = currentTimestamp
       frame[identity] = isSerialized
         ? {
-            typeRegistryName,
-            stateIndex,
-            isSerialized
-          }
+          typeRegistryName,
+          stateIndex,
+          isSerialized
+        }
         : {
-            typeRegistryName,
-            stateIndex
-          }
+          typeRegistryName,
+          stateIndex
+        }
       accumulator.push(frame)
     }
   }

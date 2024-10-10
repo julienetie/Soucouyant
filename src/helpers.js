@@ -54,3 +54,5 @@ export const areSetsSimilar = (setA, setB) => {
 export const { isArray } = Array
 
 export const startsWithUppercase = string => /^[A-Z]/.test(string)
+
+export const empty = ''

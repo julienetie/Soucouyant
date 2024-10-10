@@ -20,7 +20,8 @@ const config = {
       ...globals.node,
       document: 'readonly',
       navigator: 'readonly',
-      window: 'readonly'
+      window: 'readonly',
+      Deno: 'readonly'
     }
   },
 

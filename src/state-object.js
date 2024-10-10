@@ -1,4 +1,4 @@
-import { startsWithUppercase } from './helpers.js'
+import { startsWithUppercase, empty, pending } from './helpers.js'
 import { chainFactory } from './accumulator.js'
 import cache from './cache.js'
 
@@ -6,19 +6,41 @@ import cache from './cache.js'
  * @param {*} state
  * @param {number} identity - the unique state subscription identifier
  */
-const stateMachine = (chain, identity, state) => {
-  const stateModifier = callback => {
-    const lastState = state === null ? chain.getState(identity) : state
-    const newState = callback(lastState)
+const stateMachine = (chain, identity, state, isCreation) => {
+  chain.setState(
+    identity,
+    state === undefined ? pending : state
+  )
 
-    // We only update state if return is undefined.
-    if (newState !== undefined) {
-      chain.setState(identity, newState)
-      if (state !== null) {
-        state = null
+  const stateModifier = callback => {
+    if (callback === undefined) {
+      // initial
+      return chain.getState(identity)
+    }
+
+    if (typeof callback !== 'function') {
+      // callback is now the value of the state
+      if (callback === undefined) {
+        return callback
+      }
+
+      // callback is now the value of the state
+      chain.setState(identity, callback)
+      return callback
+    }
+
+    if (typeof callback === 'function') {
+      const lastState = chain.getState(identity)
+      const newState = callback(lastState)
+      if (newState === undefined) {
+        return lastState
+      } else {
+        chain.setState(identity, newState)
+        return newState
       }
     }
-    return newState
+
+    console.error('Something went wrong')
   }
   /**
      * subscribe method.
@@ -111,6 +133,9 @@ const stateObjectPartial = (chainName, config = {}) => {
      * @param {*} nextPart - null.
      */
   const createAddress = (chain, addressParts, count, state, length, isCollection, nextPart) => {
+    if (count === 0 && length === 1) {
+      nextPart = stateObject
+    }
     const newPart = (addressParts[count] + '').trim()
     if (nextPart === null) {
       // Creates the next property as an object.
@@ -146,6 +171,18 @@ const stateObjectPartial = (chainName, config = {}) => {
 
   const stateObject = (address, state) => {
     const addressParts = address[0].split('>')
+    if (addressParts.length === 0) return console.error('An address requires a namespace')
+
+    console.log('@@@', state)
+
+    if (chainName === 'main') {
+      const firstPartFirstChar = addressParts[0][0] || empty
+      if (firstPartFirstChar === empty) return console.error('Sououyant: Address cannot be an empty string')
+
+      if (firstPartFirstChar === '_' || firstPartFirstChar === firstPartFirstChar.toUpperCase()) {
+        return console.error('Soucouyant: The first address part on the main chain cannot begin with an underscore, capital letter or special character.')
+      }
+    }
     const addressPartsLength = addressParts.length
     const chain = chainFactory(chainName, config)
     createAddress(
